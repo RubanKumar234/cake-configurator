@@ -1,0 +1,132 @@
+html {
+    box-sizing: border-box;
+    background:#fff;
+    width: 100%;
+}
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+}
+h1 { font-size: 1.5rem; }
+label {
+    display: block;
+    margin-top: 18px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+select, input[type=text], input[type=number] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    border-radius: 5px;
+    border:#0072ff solid 1px;
+}
+.checkbox-row {
+    margin-top: 18px;
+    font-weight: normal;
+}
+.checkbox-row input { width: auto; margin-right: 8px; }
+
+/* Two-column layout: choices on the left, live summary on the right,
+    parallel to each other instead of stacked underneath. */
+.configurator-layout {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+.config-column {
+    flex: 1 1 60%;
+    min-width: 0;
+}
+.summary-column {
+    flex: 1 1 40%;
+    min-width: 260px;
+    position: sticky;
+    top: 40px;
+}
+
+.price-box {
+    margin-top: 18px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 8px; min-height: 20px;
+}
+.summary-title {
+    font-size: 1.05rem;
+    margin: 0 0 12px;
+}
+.summary-placeholder {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+.price-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+.price-total {
+    font-weight: 700;
+    border-top: 1px solid #ddd;
+    margin-top: 6px;
+    padding-top: 8px;
+}
+.error { color: #b00020;
+    font-size: 0.9rem;
+    margin: 0;
+    padding-left: 18px;
+}
+button {
+    margin-top: 24px;
+    padding: 10px 24px;
+    font-size: 1rem;
+    cursor: pointer;
+    justify-items:end;
+    width: 100%;
+    border: none;
+    background:linear-gradient(120deg,#01e2fb,#00ff3c);
+    transition: background 0.5s ease;
+    border-radius: 5px;
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+button:hover:not(:disabled) {
+    background:linear-gradient(120deg,#00ff3c,#01e2fb);
+}
+.success {
+    margin-top: 16px;
+    color: #06ff4e;
+    font-weight: 600;
+}
+.parentdiv{
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.1) 45%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    linear-gradient(135deg, #00c6ff, #0072ff);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+/* Stack back to a single column on narrow screens. */
+@media (max-width: 700px) {
+    .configurator-layout {
+        flex-direction: column;
+    }
+    .summary-column {
+        position: static;
+        width: 100%;
+    }
+}

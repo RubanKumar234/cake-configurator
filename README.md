@@ -1,64 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Custom Cake Order Configurator
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel backend + a thin Blade/Alpine.js frontend implementing a cake order configurator with
+cascading rules, server-authoritative pricing, and a rule engine that lives in one place.
 
-## About Laravel
+## Requirements
+- PHP 7.4+ (also compatible with PHP 8.x — no version-specific syntax is used)
+- Composer
+- SQLite (bundled with PHP's `pdo_sqlite` extension — no server install needed)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Setup (fresh machine)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```bash
+# 1. Create a normal Laravel skeleton
+composer create-project laravel/laravel cake-configurator
+cd cake-configurator
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# 2. Copy this repo's files IN, overwriting/adding on top of the fresh skeleton:
+#    app/Domain/Cake/*        -> app/Domain/Cake/
+#    app/Http/Controllers/CakeOrderController.php -> app/Http/Controllers/
+#    app/Models/CakeOrder.php -> app/Models/
+#    database/migrations/2026_01_01_000000_create_cake_orders_table.php -> database/migrations/
+#    resources/views/cake-order.blade.php -> resources/views/
+#    public/js/cakeorder.js   -> public/js/
+#    public/css/style.css     -> public/css/
+#    routes/api.php           -> merge into routes/api.php (create the file if it doesn't exist
+#                                 — some Laravel versions ship without one by default; if yours
+#                                 does, run `php artisan install:api` first, then merge). Make
+#                                 sure the `use App\Http\Controllers\CakeOrderController;` import
+#                                 line is present at the top.
+#    routes/web.php           -> merge the one Route::view(...) line into routes/web.php
+#    tests/Unit/CakeConfiguratorEngineTest.php   -> tests/Unit/
+#    tests/Feature/CakeOrderApiTest.php          -> tests/Feature/
+#    DESIGN.md                -> project root
 
-## Learning Laravel
+# 3. Configure SQLite
+touch database/database.sqlite
+# In .env set:
+#   DB_CONNECTION=sqlite
+#   DB_DATABASE=/absolute/path/to/cake-configurator/database/database.sqlite
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# 4. Run migrations
+php artisan migrate
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# 5. Run the tests
+php artisan test
+# Expect 10 passing: CakeConfiguratorEngineTest (5), Unit ExampleTest (1, Laravel default),
+# CakeOrderApiTest (3), Feature ExampleTest (1, Laravel default).
 
-## Laravel Sponsors
+# 6. Serve it
+php artisan serve
+# Visit http://127.0.0.1:8000/cake-order
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## What to check once it's running
+1. Open `/cake-order`, pick Birthday / 1kg / Chocolate / Eggless / Buttercream / Message on
+   ("Happy Birthday!") / 10 candles. The summary panel should show Subtotal ₹1100, GST ₹198,
+   Total ₹1298 — matches the spec's worked example exactly.
+2. Switch Occasion from Wedding (with Fondant + a color theme set) back to Birthday — the tier
+   count, Finish, and Color theme fields should visibly reset instead of leaving stale values.
+3. Try `curl -X POST http://127.0.0.1:8000/api/cake-orders -H 'Content-Type: application/json' -d '{"occasion":"birthday","tiers":[1],"flavor":"chocolate","dietary":"eggless","finish":"buttercream","has_message":true,"message":"hi","candles":10,"price":1,"valid":true}'`
+   — the response total is still 1298, ignoring the `price: 1` sent in the request.
 
-### Premium Partners
+## Project structure
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+```
+app/
+  Domain/Cake/
+    CakeRules.php                 - all constraints & prices, as data
+    CakeConfiguratorEngine.php     - validate() + price() + downstream reset helper
+    Money.php                      - integer-paise arithmetic, no floats
+    Exceptions/InvalidCakeConfigException.php
+  Http/Controllers/CakeOrderController.php   - /quote (preview) and /cake-orders (submit)
+  Models/CakeOrder.php
+database/migrations/...create_cake_orders_table.php
+resources/views/cake-order.blade.php         - Blade markup (two-column: inputs + live summary)
+public/js/cakeorder.js                       - frontend Alpine component (all form/quote logic)
+public/css/style.css                         - styling, including the two-column layout
+routes/api.php, routes/web.php
+tests/Unit/CakeConfiguratorEngineTest.php
+tests/Feature/CakeOrderApiTest.php
+DESIGN.md
+```
 
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Rounding rule
+All money is computed in integer paise; GST is rounded half-up to the nearest paisa
+(`intdiv(subtotalPaise * 18 + 50, 100)`). See `Money.php` and `DESIGN.md` for details.
