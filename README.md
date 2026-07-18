@@ -6,7 +6,7 @@ cascading rules, server-authoritative pricing, and a rule engine that lives in o
 ## Requirements
 - PHP 7.4+ (also compatible with PHP 8.x — no version-specific syntax is used)
 - Composer
-- SQLite (bundled with PHP's `pdo_sqlite` extension — no server install needed)
+- MySQL (5.7+ / 8.x) running locally, or any MySQL-compatible server (MariaDB works fine too)
 
 ## Setup (fresh machine)
 
@@ -33,24 +33,43 @@ cd cake-configurator
 #    tests/Feature/CakeOrderApiTest.php          -> tests/Feature/
 #    DESIGN.md                -> project root
 
-# 3. Configure SQLite
-touch database/database.sqlite
-# In .env set:
-#   DB_CONNECTION=sqlite
-#   DB_DATABASE=/absolute/path/to/cake-configurator/database/database.sqlite
+# 3. Create the database
+mysql -u root -p -e "CREATE DATABASE cake_configurator;"
 
-# 4. Run migrations
+# 4. Configure .env
+#   DB_CONNECTION=mysql
+#   DB_HOST=127.0.0.1
+#   DB_PORT=3306
+#   DB_DATABASE=cake_configurator
+#   DB_USERNAME=root
+#   DB_PASSWORD=your_mysql_password
+
+# 5. Run migrations
 php artisan migrate
 
-# 5. Run the tests
+# 6. Run the tests
 php artisan test
 # Expect 10 passing: CakeConfiguratorEngineTest (5), Unit ExampleTest (1, Laravel default),
 # CakeOrderApiTest (3), Feature ExampleTest (1, Laravel default).
+# Note: tests run against SQLite in-memory by default (see phpunit.xml's DB_CONNECTION /
+# DB_DATABASE env overrides), independent of the MySQL connection above — this is standard
+# practice for fast, isolated test runs and needs no extra setup.
 
-# 6. Serve it
+# 7. Serve it
 php artisan serve
 # Visit http://127.0.0.1:8000/cake-order
 ```
+
+## Database notes
+The app defaults to MySQL for local development (see `.env` above). Nothing in this project is
+MySQL-specific — no raw SQL, no MySQL-only column types — so SQLite works identically if you'd
+rather avoid running a MySQL server:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/cake-configurator/database/database.sqlite
+```
+(and `touch database/database.sqlite` first, since Laravel doesn't create the file for you).
 
 ## What to check once it's running
 1. Open `/cake-order`, pick Birthday / 1kg / Chocolate / Eggless / Buttercream / Message on
